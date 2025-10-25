@@ -6,7 +6,7 @@ spring:
     password: ""
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
@@ -14,6 +14,23 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:scheme.sql
+      data-locations: classpath:data.sql
+  h2:
+    console:
+      enabled: true
 server:
   port: 8080
-
+pg:
+  mock:
+    uri: ENC(4S/1qV1NopOXZ1C/lZlR5oYqwmKvvJ6OJCndFKfabBTKeo84yFaF1g==)
+    api-key: ENC(svGwpnb/ymgWt6uH1SkH63P66JBFrDuvHYasxZ5nhq5gSsLFWzohnqN90g5hSLI2)
+    iv: ENC(tFnriDR+ymK6XIJWPP73fGi4PE3Qxn9irsGEejguaYg=)
+    # qwer1234
+  test:
+    uri: https://api-test-pg.bigs.im
+    api-key: 11111111-1111-4111-8111-111111111111
+    iv: AAAAAAAAAAAAAAAA

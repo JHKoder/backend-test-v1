@@ -1,3 +1,7 @@
+plugins{
+    id("org.jetbrains.kotlin.plugin.jpa") version "1.9.25"
+}
+
 tasks.jar {
     enabled = true
 }
@@ -10,6 +14,7 @@ dependencies {
     implementation(projects.modules.domain)
     implementation(projects.modules.application)
     implementation(libs.spring.boot.starter.jpa)
+    implementation(libs.spring.boot.starter.logging)
     runtimeOnly(libs.database.h2)
     runtimeOnly(libs.database.mariadb)
 

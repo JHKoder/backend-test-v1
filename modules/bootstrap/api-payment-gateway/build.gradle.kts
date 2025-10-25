@@ -9,6 +9,7 @@ tasks.bootJar {
 dependencies {
     implementation(projects.modules.domain)
     implementation(projects.modules.application)
+    implementation(projects.modules.common)
     implementation(projects.modules.infrastructure.persistence)
     implementation(projects.modules.external.pgClient)
     implementation(libs.spring.boot.starter.jpa)

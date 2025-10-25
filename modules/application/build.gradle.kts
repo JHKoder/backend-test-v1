@@ -8,6 +8,8 @@ tasks.bootJar {
 
 dependencies {
     implementation(projects.modules.domain)
-    // Only need Spring annotations (@Service) for this module
+    implementation(projects.modules.common)
+    implementation(libs.spring.boot.starter.logging)
+
     implementation("org.springframework:spring-context")
 }
