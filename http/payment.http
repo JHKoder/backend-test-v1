@@ -1,0 +1,16 @@
+
+### 결제 생성
+POST http://localhost:8080/api/v1/payments
+Content-Type: application/json
+
+{
+    "partnerId": 1,
+    "amount": 1002,
+    "cardBin": "123456",
+    "cardLast4": "4242",
+    "productName": "샘플2"
+}
+
+
+### 결제 내역 조회
+GET  http://localhost:8080/api/v1/payments?partnerId=1&status=APPROVED&from=2025-10-24T11:47:24Z&limit=4&cursor=

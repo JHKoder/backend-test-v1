@@ -1,5 +1,7 @@
 package im.bigs.pg.application.payment.port.`in`
 
+import im.bigs.pg.application.payment.port.out.QueryResult
+
 /**
  * 결제 이력 조회 유스케이스(입력 포트).
  * - 통계와 커서 기반 페이지네이션을 함께 제공합니다.

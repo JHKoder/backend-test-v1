@@ -1,4 +1,4 @@
-package im.bigs.pg.application.payment.port.`in`
+package im.bigs.pg.application.payment.port.out
 
 import im.bigs.pg.domain.payment.Payment
 import im.bigs.pg.domain.payment.PaymentSummary

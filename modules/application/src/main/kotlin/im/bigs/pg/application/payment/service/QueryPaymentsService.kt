@@ -1,10 +1,18 @@
 package im.bigs.pg.application.payment.service
 
-import im.bigs.pg.application.payment.port.`in`.*
+import im.bigs.pg.application.payment.port.`in`.QueryFilter
+import im.bigs.pg.application.payment.port.`in`.QueryPaymentsUseCase
+import im.bigs.pg.application.payment.port.out.QueryResult
+import im.bigs.pg.application.payment.port.out.PaymentOutPort
+import im.bigs.pg.application.payment.port.out.PaymentQuery
+import im.bigs.pg.application.payment.port.out.PaymentSummaryFilter
+import im.bigs.pg.common.exception.ErrorCode
+import im.bigs.pg.common.exception.ApiException
+import im.bigs.pg.domain.payment.PaymentStatus
 import im.bigs.pg.domain.payment.PaymentSummary
 import org.springframework.stereotype.Service
 import java.time.Instant
-import java.util.Base64
+import java.util.*
 
 /**
  * 결제 이력 조회 유스케이스 구현체.
@@ -12,23 +20,56 @@ import java.util.Base64
  * - 통계는 조회 조건과 동일한 집합을 대상으로 계산됩니다.
  */
 @Service
-class QueryPaymentsService : QueryPaymentsUseCase {
+class QueryPaymentsService(
+    private val paymentRepository: PaymentOutPort,
+) : QueryPaymentsUseCase {
+
     /**
      * 필터를 기반으로 결제 내역을 조회합니다.
-     *
-     * 현재 구현은 과제용 목업으로, 빈 결과를 반환합니다.
-     * 지원자는 커서 기반 페이지네이션과 통계 집계를 완성하세요.
      *
      * @param filter 파트너/상태/기간/커서/페이지 크기
      * @return 조회 결과(목록/통계/커서)
      */
     override fun query(filter: QueryFilter): QueryResult {
-        return QueryResult(
-            items = emptyList(),
-            summary = PaymentSummary(count = 0, totalAmount = java.math.BigDecimal.ZERO, totalNetAmount = java.math.BigDecimal.ZERO),
-            nextCursor = null,
-            hasNext = false,
+        val paramCursor = decodeCursor(filter.cursor)
+        val status = filter.status?.let { queryValidStatus(it) }
+
+        val paymentQuery = PaymentQuery(
+            partnerId = filter.partnerId,
+            status = status,
+            from = filter.from,
+            to = filter.to,
+            cursorCreatedAt = paramCursor.first,
+            cursorId = paramCursor.second,
+            limit = filter.limit,
         )
+
+        val queryResult = paymentRepository.findBy(paymentQuery)
+
+        val summaryFilter = PaymentSummaryFilter(
+            partnerId = filter.partnerId,
+            status = status,
+            from = filter.from,
+            to = filter.to
+        )
+
+        val queryResultSummary = paymentRepository.summary(summaryFilter)
+
+        return QueryResult(
+            items = queryResult.items,
+            summary = PaymentSummary(
+                count = queryResultSummary.count,
+                totalAmount = queryResultSummary.totalAmount,
+                totalNetAmount = queryResultSummary.totalNetAmount
+            ),
+            nextCursor = encodeCursor(queryResult.nextCursorCreatedAt, queryResult.nextCursorId),
+            hasNext = queryResult.hasNext,
+        )
+    }
+
+    private fun queryValidStatus(name: String): PaymentStatus {
+        return PaymentStatus.values().find { it.name.equals(name, ignoreCase = true) }
+            ?: throw ApiException(ErrorCode.PAYMENT_QUERY_NOT_STATUS)
     }
 
     /** 다음 페이지 이동을 위한 커서 인코딩. */

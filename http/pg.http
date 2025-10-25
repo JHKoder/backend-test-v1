@@ -1,0 +1,8 @@
+### API-KEY encoded payment request
+POST https://api-test-pg.bigs.im/api/v1/pay/credit-card
+API-KEY: 11111111-1111-4111-8111-111111111111
+Content-Type: application/json
+
+{
+  "enc": "FlrQ_ZFCA9WC7HIkPzKFpnzv1AX0n7zodWtWRo6X6-ccrzwEkwOGAJyfC4cwihNy4EtwXS6yx2FBHcOP44mxDAZvv38YF6LLnBSBW2zpsvBUgImnuR6Gc_z1CTID_tuA-RpmrhrogqHJ765xMANm0Y84NyCr5qwt"
+}

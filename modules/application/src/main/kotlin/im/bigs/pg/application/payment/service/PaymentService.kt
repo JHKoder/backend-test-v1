@@ -2,15 +2,19 @@ package im.bigs.pg.application.payment.service
 
 import im.bigs.pg.application.partner.port.out.FeePolicyOutPort
 import im.bigs.pg.application.partner.port.out.PartnerOutPort
-import im.bigs.pg.application.payment.port.`in`.PaymentUseCase
 import im.bigs.pg.application.payment.port.`in`.PaymentCommand
+import im.bigs.pg.application.payment.port.`in`.PaymentUseCase
 import im.bigs.pg.application.payment.port.out.PaymentOutPort
 import im.bigs.pg.application.pg.port.out.PgApproveRequest
 import im.bigs.pg.application.pg.port.out.PgClientOutPort
+import im.bigs.pg.common.exception.ErrorCode
+import im.bigs.pg.common.exception.ApiException
 import im.bigs.pg.domain.calculation.FeeCalculator
 import im.bigs.pg.domain.payment.Payment
 import im.bigs.pg.domain.payment.PaymentStatus
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.ZoneOffset
 
 /**
  * 결제 생성 유스케이스 구현체.
@@ -24,18 +28,17 @@ class PaymentService(
     private val paymentRepository: PaymentOutPort,
     private val pgClients: List<PgClientOutPort>,
 ) : PaymentUseCase {
-    /**
-     * 결제 승인/수수료 계산/저장을 순차적으로 수행합니다.
-     * - 현재 예시 구현은 하드코드된 수수료(3% + 100)로 계산합니다.
-     * - 과제: 제휴사별 수수료 정책을 적용하도록 개선해 보세요.
-     */
+
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     override fun pay(command: PaymentCommand): Payment {
         val partner = partnerRepository.findById(command.partnerId)
-            ?: throw IllegalArgumentException("Partner not found: ${command.partnerId}")
-        require(partner.active) { "Partner is inactive: ${partner.id}" }
+            .orElseThrow { ApiException(ErrorCode.PARTNER_NOT_FOUND) }
 
-        val pgClient = pgClients.firstOrNull { it.supports(partner.id) }
-            ?: throw IllegalStateException("No PG client for partner ${partner.id}")
+        require(partner.active) { "파트너가 비활성 상태입니다. id: ${partner.id}" }
+
+        val pgClient = pgClients.firstOrNull { it.supports(partner.code) }
+            ?: throw ApiException(ErrorCode.PG_CLIENT_NOT_FOUND)
 
         val approve = pgClient.approve(
             PgApproveRequest(
@@ -46,22 +49,39 @@ class PaymentService(
                 productName = command.productName,
             ),
         )
-        val hardcodedRate = java.math.BigDecimal("0.0300")
-        val hardcodedFixed = java.math.BigDecimal("100")
-        val (fee, net) = FeeCalculator.calculateFee(command.amount, hardcodedRate, hardcodedFixed)
+
+        val feePolicy = feePolicyRepository.findEffectivePolicy(partner.id)
+            ?: throw ApiException(ErrorCode.PARTNER_FEE_POLICY)
+
+        val (fee, net) = FeeCalculator.calculateFee(
+            command.amount,
+            feePolicy.percentage,
+            feePolicy.fixedFee
+        )
+
         val payment = Payment(
             partnerId = partner.id,
             amount = command.amount,
-            appliedFeeRate = hardcodedRate,
+            appliedFeeRate = feePolicy.percentage,
             feeAmount = fee,
             netAmount = net,
-            cardBin = command.cardBin,
+            cardBin = cardBinMask(command.cardBin),
             cardLast4 = command.cardLast4,
             approvalCode = approve.approvalCode,
-            approvedAt = approve.approvedAt,
+            approvedAt = approve.approvedAt.toInstant(ZoneOffset.UTC),
             status = PaymentStatus.APPROVED,
         )
 
+        log.info("Payment created: ${payment.partnerId} , approvedAt=${payment.approvedAt} ")
         return paymentRepository.save(payment)
+    }
+
+    private fun cardBinMask(cardBin: String?): String {
+        if (cardBin.isNullOrBlank()) return "**"
+        if (cardBin.length <= 2) return "**"
+
+        val visiblePart = cardBin.take(2)
+        val maskedPart = "*".repeat(cardBin.length - 2)
+        return visiblePart + maskedPart
     }
 }
