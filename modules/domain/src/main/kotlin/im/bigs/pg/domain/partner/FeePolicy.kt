@@ -1,8 +1,7 @@
 package im.bigs.pg.domain.partner
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import java.math.BigDecimal
-import java.time.LocalDateTime
+import java.time.Instant
 
 /**
  * 제휴사별 수수료 정책.
@@ -18,8 +17,7 @@ import java.time.LocalDateTime
 data class FeePolicy(
     val id: Long? = null,
     val partnerId: Long,
-    @get:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    val effectiveFrom: LocalDateTime,
-    val percentage: BigDecimal, // e.g., 0.0235 (2.35%)
+    val effectiveFrom: Instant,
+    val percentage: BigDecimal,
     val fixedFee: BigDecimal? = null,
 )
