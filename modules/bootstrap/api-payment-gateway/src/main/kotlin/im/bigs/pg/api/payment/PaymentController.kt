@@ -1,13 +1,21 @@
 package im.bigs.pg.api.payment
 
-import im.bigs.pg.api.payment.dto.*
+import im.bigs.pg.api.payment.dto.QueryResponse
+import im.bigs.pg.api.payment.dto.Summary
 import im.bigs.pg.api.payment.`in`.CreatePaymentRequest
 import im.bigs.pg.api.payment.out.PaymentResponse
-import im.bigs.pg.application.payment.port.`in`.*
-import jakarta.validation.Valid
+import im.bigs.pg.application.payment.port.`in`.PaymentCommand
+import im.bigs.pg.application.payment.port.`in`.PaymentUseCase
+import im.bigs.pg.application.payment.port.`in`.QueryFilter
+import im.bigs.pg.application.payment.port.`in`.QueryPaymentsUseCase
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
 
 @RestController
@@ -19,7 +27,7 @@ class PaymentController(
 ) {
 
     @PostMapping
-    fun create(@Valid @RequestBody request: CreatePaymentRequest): ResponseEntity<PaymentResponse> {
+    fun create(@RequestBody request: CreatePaymentRequest): ResponseEntity<PaymentResponse> {
         val saved = paymentUseCase.pay(
             PaymentCommand(
                 partnerId = request.partnerId,

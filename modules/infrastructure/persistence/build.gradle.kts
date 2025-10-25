@@ -1,4 +1,4 @@
-plugins{
+plugins {
     id("org.jetbrains.kotlin.plugin.jpa") version "1.9.25"
 }
 

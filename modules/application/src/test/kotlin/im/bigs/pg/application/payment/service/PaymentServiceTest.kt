@@ -18,28 +18,41 @@ import org.junit.jupiter.api.DisplayName
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class 결제서비스Test {
+class PaymentServiceTest {
     private val partnerRepo = mockk<PartnerOutPort>()
     private val feeRepo = mockk<FeePolicyOutPort>()
     private val paymentRepo = mockk<PaymentOutPort>()
+
     private val pgClient = object : PgClientOutPort {
-        override fun supports(partnerId: Long) = true
+        override fun supports(pgType: String): Boolean {
+            return true
+        }
+
         override fun approve(request: PgApproveRequest) =
-            PgApproveResult("APPROVAL-123", LocalDateTime.of(2024,1,1,0,0), PaymentStatus.APPROVED)
+            PgApproveResult(
+                "APPROVAL-123",
+                LocalDateTime.of(2024, 1, 1, 0, 0),
+                PaymentStatus.APPROVED,
+                "1234",
+                BigDecimal.valueOf(10000)
+            )
     }
 
     @Test
     @DisplayName("결제 시 수수료 정책을 적용하고 저장해야 한다")
     fun `결제 시 수수료 정책을 적용하고 저장해야 한다`() {
         val service = PaymentService(partnerRepo, feeRepo, paymentRepo, listOf(pgClient))
-        every { partnerRepo.findById(1L) } returns Partner(1L, "TEST", "Test", true)
+        every { partnerRepo.findById(1L).get() } returns Partner(1L, "TEST", "Test", true)
         every { feeRepo.findEffectivePolicy(1L, any()) } returns FeePolicy(
-            id = 10L, partnerId = 1L, effectiveFrom = LocalDateTime.ofInstant(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC),
-            percentage = BigDecimal("0.0300"), fixedFee = BigDecimal("100")
+            id = 10L,
+            partnerId = 1L,
+            effectiveFrom = Instant.parse("2020-01-01T00:00:00Z"),
+            percentage = BigDecimal("0.0300"),
+            fixedFee = BigDecimal("100")
         )
         val savedSlot = slot<Payment>()
         every { paymentRepo.save(capture(savedSlot)) } answers { savedSlot.captured.copy(id = 99L) }

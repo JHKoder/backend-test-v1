@@ -19,7 +19,8 @@ data class PgApiKeyRequest(
                 birthDate = "19900101",
                 expiry = "1227",
                 password = "12",
-                amount = pgApprove.amount)
+                amount = pgApprove.amount
+            )
         }
     }
 }
