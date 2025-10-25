@@ -1,4 +1,4 @@
-package im.bigs.pg.infra.persistence
+package im.bigs.pg.infra.persistence.payment
 
 import im.bigs.pg.infra.persistence.config.JpaConfig
 import im.bigs.pg.infra.persistence.payment.entity.PaymentEntity
