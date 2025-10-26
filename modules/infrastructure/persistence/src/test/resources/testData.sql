@@ -6,7 +6,7 @@ values (2, 1, DATEADD('DAY', -10, NOW()), 0.03, 100);
 INSERT INTO partner_fee_policy (id, partner_id, effective_from, percentage, fixed_fee)
 values (3, 1, DATEADD('DAY', -5, NOW()), 0.07, 300);
 INSERT INTO partner_fee_policy (id, partner_id, effective_from, percentage, fixed_fee)
-values (4, 1, now(), 0.10, 500);
+values (4, 1, DATEADD('DAY', -1, NOW()), 0.10, 500);
 
 INSERT INTO partner (id, code, name, active)
 values (2, 'mock', '더미 PG', true);
