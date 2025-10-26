@@ -65,4 +65,30 @@ class PaymentServiceTest {
         assertEquals(BigDecimal("9600"), res.netAmount)
         assertEquals(PaymentStatus.APPROVED, res.status)
     }
+
+    @Test
+    @DisplayName("카드 BIN 마스킹")
+    fun `카드 BIN 마스킹`() {
+        // Given
+        val bin = getPaymentCommand().cardBin
+        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, listOf(pgClient))
+
+        // when
+        val method = PaymentService::class.java.getDeclaredMethod("cardBinMask", String::class.java)
+        method.isAccessible = true
+        val masked = method.invoke(service, bin) as String
+
+        // Then
+        assertEquals("12****", masked)
+    }
+
+    private fun getPaymentCommand(): PaymentCommand {
+        return PaymentCommand(
+            partnerId = 1L,
+            amount = BigDecimal("10000"),
+            cardBin = "123456",
+            cardLast4 = "3456",
+            productName = "Test Product"
+        )
+    }
 }
