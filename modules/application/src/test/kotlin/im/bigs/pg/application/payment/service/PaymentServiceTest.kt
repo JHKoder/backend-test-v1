@@ -46,7 +46,7 @@ class PaymentServiceTest {
     @DisplayName("결제 시 수수료 정책을 적용하고 저장해야 한다")
     fun `결제 시 수수료 정책을 적용하고 저장해야 한다`() {
         val service = PaymentService(partnerRepo, feeRepo, paymentRepo, listOf(pgClient))
-        every { partnerRepo.findById(1L).get() } returns Partner(1L, "TEST", "Test", true)
+        every { partnerRepo.findById(1L) } returns Optional.of(Partner(1L, "TEST", "Test", true))
         every { feeRepo.findEffectivePolicy(1L, any()) } returns FeePolicy(
             id = 10L,
             partnerId = 1L,
@@ -64,5 +64,31 @@ class PaymentServiceTest {
         assertEquals(BigDecimal("400"), res.feeAmount)
         assertEquals(BigDecimal("9600"), res.netAmount)
         assertEquals(PaymentStatus.APPROVED, res.status)
+    }
+
+    @Test
+    @DisplayName("카드 BIN 마스킹")
+    fun `카드 BIN 마스킹`() {
+        // Given
+        val bin = getPaymentCommand().cardBin
+        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, listOf(pgClient))
+
+        // when
+        val method = PaymentService::class.java.getDeclaredMethod("cardBinMask", String::class.java)
+        method.isAccessible = true
+        val masked = method.invoke(service, bin) as String
+
+        // Then
+        assertEquals("12****", masked)
+    }
+
+    private fun getPaymentCommand(): PaymentCommand {
+        return PaymentCommand(
+            partnerId = 1L,
+            amount = BigDecimal("10000"),
+            cardBin = "123456",
+            cardLast4 = "3456",
+            productName = "Test Product"
+        )
     }
 }

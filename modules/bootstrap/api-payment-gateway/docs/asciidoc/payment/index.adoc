@@ -1,0 +1,20 @@
+=== 결제 API
+:basedir: {docdir}/../../../
+:snippets: {basedir}/build/generated-snippets
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+
+==== 결제 승인
+===== Request
+include::{snippets}/payment-create/http-request.adoc[]
+===== Response
+include::{snippets}/payment-create/http-response.adoc[]
+
+
+==== 결제 조회
+===== Request
+include::{snippets}/payment-query/http-request.adoc[]
+===== Response
+include::{snippets}/payment-query/http-response.adoc[]
