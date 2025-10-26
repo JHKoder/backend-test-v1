@@ -1,13 +1,10 @@
-=== 카테고리
+=== 결제 API
 :basedir: {docdir}/../../../
 :snippets: {basedir}/build/generated-snippets
 :icons: font
 :source-highlighter: highlightjs
 :toc: left
 :toclevels: 2
-
-
-=== 결제 API
 
 ==== 결제 승인
 ===== Request
